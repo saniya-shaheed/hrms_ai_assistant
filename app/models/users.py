@@ -1,17 +1,16 @@
-from datetime import date
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Users(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer, nullable=False, primary_key=True, index=True)
-    employee_id = Column(Integer, ForeignKey("employees.employee_id"), unique=True, index=True)
-    password_hash = Column(String(100), nullable=False)
+    user_id = Column(BigInteger, nullable=False, primary_key=True, index=True)
+    employee_id = Column(BigInteger, ForeignKey("employees.employee_id"), unique=True, index=True)
+    password_hash = Column(Text, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(Date, default=date.today)
-    updated_at = Column(Date, default=date.today, onupdate=date.today)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     employee = relationship("Employees", back_populates="user")
     user_roles = relationship("UserRoles", back_populates="user")
