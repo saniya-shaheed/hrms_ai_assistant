@@ -7,7 +7,7 @@ class Employees(Base):
     __tablename__ = "employees"
 
     employee_id = Column(BigInteger, nullable=False, primary_key=True, index=True)
-    employee__code = Column(String(50), nullable=False, unique=True, index=True)
+    employee_code = Column(String(50), nullable=False, unique=True, index=True)
     employee_name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False, unique=True, index=True)
     department_id = Column(BigInteger, ForeignKey("departments.department_id"), index=True)

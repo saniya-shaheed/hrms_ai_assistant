@@ -6,7 +6,7 @@ class TimesheetEntries(Base):
     __tablename__ = "timesheet_entries"
 
     timesheet_entry_id = Column(BigInteger, nullable=False, primary_key=True, index=True)
-    timesheet_id = Column(Integer, ForeignKey("timesheets.timesheet_id"), nullable=False)
+    timesheet_id = Column(BigInteger, ForeignKey("timesheets.timesheet_id"), nullable=False)
     work_date = Column(Date, nullable=False)
     hours_worked = Column(Integer, nullable=False)
     task_description = Column(Text)

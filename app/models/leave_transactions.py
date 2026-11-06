@@ -8,7 +8,7 @@ class LeaveTransactions(Base):
     leave_transaction_id = Column(BigInteger, nullable=False, primary_key=True, index=True)
     employee_id = Column(BigInteger, ForeignKey("employees.employee_id"), nullable=False)
     leave_balance_id = Column(BigInteger, ForeignKey("leave_balances.leave_balance_id"), nullable=False)
-    leave_request_id = Column(Integer, ForeignKey("leave_requests.leave_request_id"))
+    leave_request_id = Column(BigInteger, ForeignKey("leave_requests.leave_request_id"))
     transaction_type = Column(String(100), nullable=False)
     days_delta = Column(Integer, nullable=False)
     notes = Column(Text)
