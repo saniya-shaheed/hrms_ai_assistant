@@ -1,4 +1,5 @@
 from sqlalchemy import BigInteger, Column, DateTime, String, Text, func
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Permissions(Base):
@@ -8,6 +9,8 @@ class Permissions(Base):
     permission_code = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(Text, unique=True)
     created_at = Column(DateTime, default=func.now())
+
+    role_permissions = relationship("RolePermissions", back_populates="permission")
 
 
     

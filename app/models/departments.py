@@ -1,4 +1,3 @@
-from datetime import date
 from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String, func
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -16,5 +15,5 @@ class Departments(Base):
 
     parent_department = relationship("Departments", remote_side=[department_id], back_populates="sub_department")
     sub_department = relationship("Departments", back_populates="parent_department")
-    employees = relationship("Departments", back_populates="department")
+    employees = relationship("Employees", back_populates="department")
     hr_policies = relationship("HRPolicies", back_populates="department")

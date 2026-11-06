@@ -22,7 +22,7 @@ class Employees(Base):
     department = relationship("Departments", back_populates="employees")
     manager = relationship("Employees",remote_side=[employee_id],back_populates="subordinates")
     subordinates = relationship("Employees",back_populates="manager")
-    user = relationship("Employees", back_populates="employee")
+    user = relationship("Users", back_populates="employee")
     leave_balances = relationship("LeaveBalances", back_populates="employee")
     leave_requests = relationship("LeaveRequests", back_populates="employee")
     leave_approvals = relationship("LeaveApprovals", back_populates="approver")

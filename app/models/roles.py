@@ -11,5 +11,6 @@ class Roles(Base):
     created_at = Column(DateTime, default=func.now())
 
     user_roles = relationship("UserRoles", back_populates="role")
+    role_permissions = relationship("RolePermissions", back_populates="role")
 
     
