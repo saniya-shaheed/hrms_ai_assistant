@@ -11,5 +11,7 @@ bcrypt
 email-validator
 alembic
 pgvector
+argon2-cffi 
+PyJWT
 
 

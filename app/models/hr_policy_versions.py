@@ -24,6 +24,6 @@ class HRPolicyVersions(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     policy = relationship("HRPolicies", back_populates="policy_versions")
-    approved_by_user = relationship("Users", foreign_keys=[approved_by_user_id])
-    created_by_user = relationship("Users", foreign_keys=[created_by_user_id])
+    approved_by_user = relationship("Users", foreign_keys=[approved_by_user_id], back_populates="approved_hr_policy_versions")
+    created_by_user = relationship("Users", foreign_keys=[created_by_user_id], back_populates="created_hr_policy_versions")
     policy_chunks = relationship("HRPolicyChunks", back_populates="policy_version")

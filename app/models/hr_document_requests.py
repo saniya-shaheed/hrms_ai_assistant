@@ -16,8 +16,16 @@ class HRDocumentRequests(Base):
     remarks = Column(Text)
     document_reference = Column(String(500))
 
-    employee = relationship("Employees", back_populates="hr_document_requests")
+    employee = relationship("Employees", foreign_keys=[employee_id], back_populates="hr_document_requests")
+    processed_employee = relationship("Employees", foreign_keys=[processed_by_employee_id], back_populates="processed_hr_document_requests")
+
+
+
+
+
+
+
+
     document_type = relationship("HRDocumentTypes", back_populates="hr_document_requests")
-    processed_employee = relationship("Employees", back_populates="hr_document_requests")
     history = relationship("HRDocumentRequestHistory", back_populates="document_request")
     

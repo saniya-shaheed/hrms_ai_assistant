@@ -20,4 +20,5 @@ class Users(Base):
     ai_conversations = relationship("AIConversations", back_populates="user")
     ai_tool_executions = relationship("AIToolExecutions", back_populates="user")
     hr_policies = relationship("HRPolicies", back_populates="user")
-    hr_policy_versions = relationship("HRPolicyVersions", back_populates="created_by_user")
+    approved_hr_policy_versions = relationship("HRPolicyVersions", foreign_keys="HRPolicyVersions.approved_by_user_id", back_populates="approved_by_user")
+    created_hr_policy_versions = relationship("HRPolicyVersions", foreign_keys="HRPolicyVersions.created_by_user_id", back_populates="created_by_user")
