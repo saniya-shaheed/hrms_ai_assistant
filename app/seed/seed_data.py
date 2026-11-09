@@ -1,5 +1,6 @@
 from app.database import SessionLocal
-from app.models import Departments, Roles, Permissions
+from app.models import Departments, Roles, Permissions, Employees, Users
+from app.core.security import hash_password
 
 
 def seed_departments(db):
@@ -113,6 +114,49 @@ def seed_permissions(db):
         if not existing:
             db.add(Permissions(**data))
 
+def seed_employee_and_user(db):
+    department = (
+        db.query(Departments)
+        .filter(Departments.department_code == "IT")
+        .first()
+    )
+
+    if not department:
+        raise ValueError("IT department not found.")
+
+    employee = (
+        db.query(Employees)
+        .filter(Employees.employee_code == "EMP001")
+        .first()
+    )
+
+    if not employee:
+        employee = Employees(
+            employee_code="EMP001",
+            employee_name="Test Employee",
+            email="employee@test.com",
+            department_id=department.department_id,
+            job_title="Data Analyst",
+            is_active=True,
+        )
+
+        db.add(employee)
+        db.flush()
+
+    user = (
+        db.query(Users)
+        .filter(Users.employee_id == employee.employee_id)
+        .first()
+    )
+
+    if not user:
+        user = Users(
+            employee_id=employee.employee_id,
+            password_hash=hash_password("Test@12345"),
+            is_active=True,
+        )
+
+        db.add(user)
 
 def seed_database():
     db = SessionLocal()
@@ -121,6 +165,7 @@ def seed_database():
         seed_departments(db)
         seed_roles(db)
         seed_permissions(db)
+        seed_employee_and_user(db)
 
         db.commit()
 

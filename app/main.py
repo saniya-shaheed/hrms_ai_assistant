@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.database import get_db
 from app import models
+from app.routers import auth
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI() 
@@ -39,3 +40,4 @@ def database_check(db: Session = Depends(get_db)):
         }
 
 
+app.include_router(auth.router)
