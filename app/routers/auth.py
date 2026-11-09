@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
-from app.dependencies.authorization import require_role
+from app.dependencies.authorization import require_permission, require_role
 from app.models.users import Users
 from app.schema.auth import LoginRequest, TokenResponse
-from app.crud.users import get_user_by_email, get_user_roles
+from app.crud.users import get_user_by_email, get_user_permissions, get_user_roles
 from app.core.security import verify_password, create_access_token
 
 
@@ -82,5 +82,38 @@ def hr_only(
 ):
     return {
         "message": "HR access granted",
+        "user_id": current_user.user_id
+    }
+
+@router.get("/my-permissions")
+def get_my_permissions(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    permissions = get_user_permissions(db, current_user.user_id)
+
+    return {
+        "user_id": current_user.user_id,
+        "permissions": [
+            permission.permission_code
+            for permission in permissions
+        ]
+    }
+
+@router.get("/leave-create-test")
+def leave_create_test(
+    current_user = Depends(require_permission("leave.create"))
+):
+    return {
+        "message": "Leave creation permission granted",
+        "user_id": current_user.user_id
+    }
+
+@router.get("/leave-approve-test")
+def leave_approve_test(
+    current_user = Depends(require_permission("leave.approve"))
+):
+    return {
+        "message": "Leave approval permission granted",
         "user_id": current_user.user_id
     }

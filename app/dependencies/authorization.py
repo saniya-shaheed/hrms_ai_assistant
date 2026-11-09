@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
-from app.crud.users import get_user_roles
+from app.crud.users import get_user_permissions, get_user_roles
 
 
 def require_role(required_role: str):
@@ -25,3 +25,26 @@ def require_role(required_role: str):
         return current_user
 
     return role_checker
+
+def require_permission(required_permission: str):
+
+    def permission_checker(
+        current_user = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
+        permissions = get_user_permissions(db, current_user.user_id)
+
+        permission_codes = [
+            permission.permission_code
+            for permission in permissions
+        ]
+
+        if required_permission not in permission_codes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required permission: {required_permission}"
+            )
+
+        return current_user
+
+    return permission_checker
