@@ -2,4 +2,5 @@
 app/__pycache__/
 app/models/__pycache__/
 migration/
-alembic.ini
+alembic.ini"__pycache__/" 
+"*.py[cod]" 
