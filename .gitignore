@@ -1,7 +1,4 @@
+﻿.venv/
+__pycache__/
+*.py[cod]
 .env
-app/__pycache__/
-app/models/__pycache__/
-migration/
-alembic.ini"__pycache__/" 
-"*.py[cod]" 
-venv/
