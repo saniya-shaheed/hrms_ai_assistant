@@ -47,73 +47,75 @@ def login(
         access_token=access_token
     )
 
-@router.get("/me")
-def get_me(current_user: Users = Depends(get_current_user)):
-    return {
-        "user_id": current_user.user_id,
-        "employee_id": current_user.employee_id,
-        "is_active": current_user.is_active
-    }
 
-@router.get("/my-roles")
-def get_my_roles(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    roles = get_user_roles(db, current_user.user_id)
+# TESTING OF AUTHORIZATION, ROLE ACCESS, PERMISSIONS, ETC
+# @router.get("/me")
+# def get_me(current_user: Users = Depends(get_current_user)):
+#     return {
+#         "user_id": current_user.user_id,
+#         "employee_id": current_user.employee_id,
+#         "is_active": current_user.is_active
+#     }
 
-    return {
-        "user_id": current_user.user_id,
-        "roles": [role.role_name for role in roles]
-    }
+# @router.get("/my-roles")
+# def get_my_roles(
+#     current_user = Depends(get_current_user),
+#     db: Session = Depends(get_db)
+# ):
+#     roles = get_user_roles(db, current_user.user_id)
 
-@router.get("/employee-only")
-def employee_only(
-    current_user = Depends(require_role("Employee"))
-):
-    return {
-        "message": "Employee access granted",
-        "user_id": current_user.user_id
-    }
+#     return {
+#         "user_id": current_user.user_id,
+#         "roles": [role.role_name for role in roles]
+#     }
 
-@router.get("/hr-only")
-def hr_only(
-    current_user = Depends(require_role("HR"))
-):
-    return {
-        "message": "HR access granted",
-        "user_id": current_user.user_id
-    }
+# @router.get("/employee-only")
+# def employee_only(
+#     current_user = Depends(require_role("Employee"))
+# ):
+#     return {
+#         "message": "Employee access granted",
+#         "user_id": current_user.user_id
+#     }
 
-@router.get("/my-permissions")
-def get_my_permissions(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    permissions = get_user_permissions(db, current_user.user_id)
+# @router.get("/hr-only")
+# def hr_only(
+#     current_user = Depends(require_role("HR"))
+# ):
+#     return {
+#         "message": "HR access granted",
+#         "user_id": current_user.user_id
+#     }
 
-    return {
-        "user_id": current_user.user_id,
-        "permissions": [
-            permission.permission_code
-            for permission in permissions
-        ]
-    }
+# @router.get("/my-permissions")
+# def get_my_permissions(
+#     current_user = Depends(get_current_user),
+#     db: Session = Depends(get_db)
+# ):
+#     permissions = get_user_permissions(db, current_user.user_id)
 
-@router.get("/leave-create-test")
-def leave_create_test(
-    current_user = Depends(require_permission("leave.create"))
-):
-    return {
-        "message": "Leave creation permission granted",
-        "user_id": current_user.user_id
-    }
+#     return {
+#         "user_id": current_user.user_id,
+#         "permissions": [
+#             permission.permission_code
+#             for permission in permissions
+#         ]
+#     }
 
-@router.get("/leave-approve-test")
-def leave_approve_test(
-    current_user = Depends(require_permission("leave.approve"))
-):
-    return {
-        "message": "Leave approval permission granted",
-        "user_id": current_user.user_id
-    }
+# @router.get("/leave-create-test")
+# def leave_create_test(
+#     current_user = Depends(require_permission("leave.create"))
+# ):
+#     return {
+#         "message": "Leave creation permission granted",
+#         "user_id": current_user.user_id
+#     }
+
+# @router.get("/leave-approve-test")
+# def leave_approve_test(
+#     current_user = Depends(require_permission("leave.approve"))
+# ):
+#     return {
+#         "message": "Leave approval permission granted",
+#         "user_id": current_user.user_id
+#     }
