@@ -4,3 +4,4 @@ app/models/__pycache__/
 migration/
 alembic.ini"__pycache__/" 
 "*.py[cod]" 
+venv/
