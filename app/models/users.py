@@ -6,11 +6,20 @@ class Users(Base):
     __tablename__ = "users"
 
     user_id = Column(BigInteger, nullable=False, primary_key=True, index=True)
-    employee_id = Column(BigInteger, ForeignKey("employees.employee_id"), unique=True, index=True)
+    employee_id = Column(BigInteger, ForeignKey("employees.employee_id"), nullable=False, unique=True, index=True)
     password_hash = Column(Text, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.now(),
+        server_default=func.now())
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now())
 
     employee = relationship("Employees", back_populates="user")
     user_roles = relationship("UserRoles", back_populates="user")
