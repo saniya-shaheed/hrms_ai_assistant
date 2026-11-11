@@ -7,7 +7,7 @@ class Departments(Base):
 
     department_id = Column(BigInteger, nullable=False, primary_key=True, index=True)
     department_name = Column(String(100), nullable=False, unique=True, index=True)
-    department_code = Column(String(50), unique=True, index=True)
+    department_code = Column(String(50), unique=True, nullable=False, index=True)
     parent_department_id = Column(BigInteger, ForeignKey("departments.department_id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=func.now())
