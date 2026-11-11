@@ -1,7 +1,6 @@
-from sqlalchemy import BigInteger, DateTime, func, Column, Date, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, DateTime, func, Column, Date, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
-
 class LeaveBalances(Base):
     __tablename__ = "leave_balances"
 
@@ -14,8 +13,23 @@ class LeaveBalances(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
+    __table_args__ = (
+    UniqueConstraint(
+        "employee_id",
+        "leave_type_code",
+        "balance_year",
+        name="uq_leave_balance_employee_type_year"
+    ),
+)
+    
+
     employee = relationship("Employees", back_populates="leave_balances")
     leave_type = relationship("LeaveTypes", back_populates="leave_balances")
     leave_transactions = relationship("LeaveTransactions", back_populates="leave_balance")
 
-    
+    @property
+    def available_days(self):
+        return self.entitlement_days - self.used_days
+
+
+
