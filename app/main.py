@@ -7,6 +7,7 @@ from fastapi import Depends
 from app.database import get_db
 from app import models
 from app.routers import auth, employees, departments
+from app.routers.roles import roles_router, permissions_router, user_roles_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI() 
@@ -43,3 +44,6 @@ def database_check(db: Session = Depends(get_db)):
 app.include_router(auth.router)
 app.include_router(employees.router)
 app.include_router(departments.router)
+app.include_router(roles_router)
+app.include_router(permissions_router)
+app.include_router(user_roles_router)
