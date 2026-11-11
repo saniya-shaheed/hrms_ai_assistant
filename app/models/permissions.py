@@ -8,7 +8,12 @@ class Permissions(Base):
     permission_id = Column(BigInteger, primary_key=True, nullable=False, index=True)
     permission_code = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(Text, unique=True)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(
+    DateTime,
+    nullable=False,
+    default=func.now(),
+    server_default=func.now()
+)
 
     role_permissions = relationship("RolePermissions", back_populates="permission")
 

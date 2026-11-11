@@ -1,17 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class RolePermissionsBase(BaseModel):
-    role_id : int
     permission_id : int
 
-class RolePermissionsCreate(RolePermissionsBase):
-    pass
-
-class RolePermissionsUpdate(BaseModel):
-    role_id : int | None = None
-    permission_id : int | None = None
-
-class RoelPermissionsOut(RolePermissionsBase):
-    pass
+class RolePermissionsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    role_id: int
+    permission_id : int
 
