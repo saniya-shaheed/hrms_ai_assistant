@@ -47,3 +47,73 @@ def get_user_permissions(db: Session, user_id: int):
         .order_by(Permissions.permission_code)
         .all()
     )
+
+def get_user_by_employee_id(db: Session, employee_id: int):
+    return (
+        db.query(Users)
+        .filter(Users.employee_id == employee_id)
+        .first()
+    )
+
+
+def get_all_users(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100
+):
+    return (
+        db.query(Users)
+        .order_by(Users.user_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def create_user_record(db: Session, user_data: dict):
+    user = Users(**user_data)
+
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+
+    except Exception:
+        db.rollback()
+        raise
+
+
+def update_user_record(
+    db: Session,
+    user: Users,
+    update_data: dict
+):
+    try:
+        for key, value in update_data.items():
+            setattr(user, key, value)
+
+        db.commit()
+        db.refresh(user)
+        return user
+
+    except Exception:
+        db.rollback()
+        raise
+
+
+def update_user_password(
+    db: Session,
+    user: Users,
+    password_hash: str
+):
+    try:
+        user.password_hash = password_hash
+
+        db.commit()
+        db.refresh(user)
+        return user
+
+    except Exception:
+        db.rollback()
+        raise

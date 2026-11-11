@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.database import get_db
 from app import models
-from app.routers import auth, employees, departments
+from app.routers import auth, employees, departments, users
 from app.routers.roles import roles_router, permissions_router, user_roles_router
 
 Base.metadata.create_all(bind=engine)
@@ -47,3 +47,4 @@ app.include_router(departments.router)
 app.include_router(roles_router)
 app.include_router(permissions_router)
 app.include_router(user_roles_router)
+app.include_router(users.router)
