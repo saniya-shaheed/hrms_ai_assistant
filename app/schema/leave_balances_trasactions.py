@@ -18,8 +18,8 @@ class LeaveBalancesOut(BaseModel):
     used_days: int
     available_days: int
     balance_year: int
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None
+    updated_at: datetime | None
 
 
 class LeaveBalanceAdjustment(BaseModel):
@@ -53,4 +53,4 @@ class LeaveTransactionsOut(BaseModel):
     days_delta: int
     notes: str | None
     actor_user_id: int | None
-    created_at: datetime
+    created_at: datetime | None
