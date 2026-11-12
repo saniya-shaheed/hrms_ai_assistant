@@ -1,7 +1,5 @@
 from datetime import datetime
-
-from pydantic import BaseModel, ConfigDict
-
+from pydantic import ConfigDict, BaseModel
 
 class PublicHolidaysBase(BaseModel):
     holiday_date : datetime
