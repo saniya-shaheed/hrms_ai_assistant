@@ -57,17 +57,19 @@ def get_leave_balance_for_year(
     db: Session,
     employee_id: int,
     leave_type_code: str,
-    balance_year: int
+    balance_year: int,
+    for_update: bool = False
 ):
-    return (
-        db.query(LeaveBalances)
-        .filter(
-            LeaveBalances.employee_id == employee_id,
-            LeaveBalances.leave_type_code == leave_type_code,
-            LeaveBalances.balance_year == balance_year
-        )
-        .first()
+    query = db.query(LeaveBalances).filter(
+        LeaveBalances.employee_id == employee_id,
+        LeaveBalances.leave_type_code == leave_type_code,
+        LeaveBalances.balance_year == balance_year
     )
+
+    if for_update:
+        query = query.with_for_update()
+
+    return query.first()
 
 
 def get_pending_leave_days(
@@ -75,9 +77,10 @@ def get_pending_leave_days(
     employee_id: int,
     leave_type_code: str,
     period_start: date,
-    period_end: date
+    period_end: date,
+    exclude_request_id: int | None = None
 ):
-    pending_requests = (
+    query = (
         db.query(LeaveRequests)
         .filter(
             LeaveRequests.employee_id == employee_id,
@@ -86,8 +89,14 @@ def get_pending_leave_days(
             LeaveRequests.start_date <= period_end,
             LeaveRequests.end_date >= period_start
         )
-        .all()
     )
+
+    if exclude_request_id is not None:
+        query = query.filter(
+            LeaveRequests.leave_request_id != exclude_request_id
+        )
+
+    pending_requests = query.all()
 
     pending_days = 0
 
@@ -96,9 +105,7 @@ def get_pending_leave_days(
         overlap_end = min(request.end_date, period_end)
 
         if overlap_start <= overlap_end:
-            pending_days += (
-                overlap_end - overlap_start
-            ).days + 1
+            pending_days += (overlap_end - overlap_start).days + 1
 
     return pending_days
 
