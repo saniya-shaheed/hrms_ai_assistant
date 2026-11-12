@@ -13,9 +13,27 @@ class LeaveRequests(Base):
     end_date = Column(Date, nullable=False)
     days_requested = Column(Integer, nullable=False)
     reason = Column(Text)
-    status = Column(String(100), nullable=False, default="Pending")
-    submitted_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    status = Column(
+        String(100),
+        nullable=False,
+        default="Pending",
+        server_default="Pending"
+    )
+
+    submitted_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.now(),
+        server_default=func.now()
+    )
+
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
 
     employee = relationship("Employees", back_populates="leave_requests")
     leave_type = relationship("LeaveTypes", back_populates="leave_requests")

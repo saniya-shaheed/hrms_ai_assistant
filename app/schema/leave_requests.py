@@ -1,31 +1,39 @@
+from datetime import date, datetime
 
-from datetime import datetime
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator
+)
 
-from pydantic import BaseModel, ConfigDict
+
+class LeaveRequestsCreate(BaseModel):
+    leave_type_code: str = Field(min_length=1, max_length=100)
+    start_date: date
+    end_date: date
+    reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.end_date < self.start_date:
+            raise ValueError(
+                "End date cannot be earlier than start date"
+            )
+
+        return self
 
 
-class LeaveRequestsBase(BaseModel):
-    employee_id : int
-    leave_type_code : str
-    start_date : datetime
-    end_Date : datetime
-    days_requested : int
-    reason : str | None = None
-    status : str = "Pending"
-
-class LeaveRequestsCreate(LeaveRequestsBase):
-    pass
-
-class LeaveRequestsUpdate(LeaveRequestsBase):
-    employee_id : int | None = None
-    leave_type_code : str | None = None
-    start_date : datetime | None = None
-    end_Date : datetime | None = None
-    days_requested : int | None = None
-
-class LeaveRequestsOut(LeaveRequestsBase):
+class LeaveRequestsOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    leave_request_id : int
-    submitted_At : datetime
-    updated_at : datetime
 
+    leave_request_id: int
+    employee_id: int
+    leave_type_code: str
+    start_date: date
+    end_date: date
+    days_requested: int
+    reason: str | None
+    status: str
+    submitted_at: datetime
+    updated_at: datetime
