@@ -11,6 +11,7 @@ from app.routers.roles import roles_router, permissions_router, user_roles_route
 from app.routers.leave_approvals import pending_router, decision_router
 from app.routers.hr_documents import document_types_router, document_requests_router
 from app.routers import timesheets
+from app.routers import conversations
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI() 
@@ -61,6 +62,7 @@ app.include_router(public_holidays.router)
 app.include_router(document_types_router)
 app.include_router(document_requests_router)
 app.include_router(timesheets.router)
+app.include_router(conversations.router)
 
 
 
