@@ -74,6 +74,9 @@ def get_duplicate_public_holiday(
     region: str,
     exclude_holiday_id: int | None = None
 ):
+    country_code = country_code.strip().upper()
+    region = region.strip()
+
     query = db.query(PublicHolidays).filter(
         PublicHolidays.holiday_date == holiday_date,
         PublicHolidays.country_code == country_code,
