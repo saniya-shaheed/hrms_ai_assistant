@@ -2,6 +2,7 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
+from app.core.leave_calender import get_working_days
 from app.models.leave_requests import LeaveRequests
 from app.models.leave_balances import LeaveBalances
 
@@ -101,11 +102,23 @@ def get_pending_leave_days(
     pending_days = 0
 
     for request in pending_requests:
-        overlap_start = max(request.start_date, period_start)
-        overlap_end = min(request.end_date, period_end)
+
+        overlap_start = max(
+            request.start_date,
+            period_start
+        )
+
+        overlap_end = min(
+            request.end_date,
+            period_end
+        )
 
         if overlap_start <= overlap_end:
-            pending_days += (overlap_end - overlap_start).days + 1
+            pending_days += get_working_days(
+                db,
+                overlap_start,
+                overlap_end
+            )
 
     return pending_days
 

@@ -11,6 +11,7 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
+from app.core.leave_calender import get_working_days
 from app.database import get_db
 
 from app.dependencies.auth import get_current_user
@@ -225,9 +226,14 @@ def decide_leave_request(
                     date(year, 12, 31)
                 )
 
-                days_for_year = (
-                    period_end - period_start
-                ).days + 1
+                days_for_year = get_working_days(
+                    db,
+                    period_start,
+                    period_end
+                )
+
+                if days_for_year == 0:
+                    continue
 
                 # Lock the employee's balance for this year.
                 balance = get_leave_balance_for_year(
@@ -249,8 +255,8 @@ def decide_leave_request(
                     db,
                     leave_request.employee_id,
                     leave_request.leave_type_code,
-                    period_start,
-                    period_end,
+                    date(year, 1, 1),
+                    date(year, 12, 31),
                     exclude_request_id=leave_request.leave_request_id
                 )
 

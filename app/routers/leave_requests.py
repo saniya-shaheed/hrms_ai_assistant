@@ -11,6 +11,7 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
+from app.core.leave_calender import get_working_days
 from app.database import get_db
 
 from app.dependencies.auth import get_current_user
@@ -32,6 +33,8 @@ from app.crud.leave_types import get_leave_type_by_code
 from app.crud.employees import get_employee_by_id
 from app.crud.users import get_user_permissions
 
+from app.models.leave_requests import LeaveRequests
+from app.models.leave_transactions import LeaveTransactions
 from app.schema.leave_requests import (
     LeaveRequestsCreate,
     LeaveRequestsOut
@@ -64,7 +67,10 @@ def create_leave_request(
 
     employee_id = current_user.employee_id
 
-    # Retrieve the employee linked to the logged-in user
+    # ------------------------------------------
+    # 1. Validate employee
+    # ------------------------------------------
+
     employee = get_employee_by_id(db, employee_id)
 
     if employee is None or not employee.is_active:
@@ -73,7 +79,10 @@ def create_leave_request(
             detail="Employee profile is inactive or unavailable"
         )
 
-    # Retrieve leave type
+    # ------------------------------------------
+    # 2. Validate leave type
+    # ------------------------------------------
+
     leave_type = get_leave_type_by_code(
         db,
         request_data.leave_type_code
@@ -91,12 +100,30 @@ def create_leave_request(
             detail="This leave type is inactive"
         )
 
-    # Calculate inclusive calendar days
-    days_requested = (
+    # ------------------------------------------
+    # 3. Calculate requested days
+    # ------------------------------------------
+
+    calendar_days = (
         request_data.end_date - request_data.start_date
     ).days + 1
 
-    # Check minimum notice period
+    days_requested = get_working_days(
+        db,
+        request_data.start_date,
+        request_data.end_date
+    )
+
+    if days_requested == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The selected period contains no working days"
+        )
+
+    # ------------------------------------------
+    # 4. Validate notice period
+    # ------------------------------------------
+
     earliest_allowed_date = (
         date.today()
         + timedelta(
@@ -113,17 +140,23 @@ def create_leave_request(
             )
         )
 
-    # Check maximum consecutive days
+    # ------------------------------------------
+    # 5. Validate maximum consecutive days
+    # ------------------------------------------
+
     if (
         leave_type.max_consecutive_days is not None
-        and days_requested > leave_type.max_consecutive_days
+        and calendar_days > leave_type.max_consecutive_days
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Requested leave exceeds the maximum consecutive days"
+            detail="Requested period exceeds the maximum consecutive calendar days"
         )
 
-    # Check overlapping Pending or Approved requests
+    # ------------------------------------------
+    # 6. Check overlapping requests
+    # ------------------------------------------
+
     overlapping_request = get_overlapping_leave_request(
         db,
         employee_id,
@@ -137,12 +170,18 @@ def create_leave_request(
             detail="An existing pending or approved leave request overlaps these dates"
         )
 
-    # Check leave balance for each calendar year
+    # ------------------------------------------
+    # 7. Validate annual leave balances
+    # ------------------------------------------
+
+    # Store the locked balance rows and days for each year.
+    balances_to_update = []
 
     if leave_type.is_paid:
+
         first_year = request_data.start_date.year
         last_year = request_data.end_date.year
-        
+
         for year in range(first_year, last_year + 1):
 
             period_start = max(
@@ -155,15 +194,22 @@ def create_leave_request(
                 date(year, 12, 31)
             )
 
-            days_for_year = (
-                period_end - period_start
-            ).days + 1
+            days_for_year = get_working_days(
+                db,
+                period_start,
+                period_end
+            )
 
+            if days_for_year == 0:
+                continue
+
+            # Lock the annual balance row.
             balance = get_leave_balance_for_year(
                 db,
                 employee_id,
                 request_data.leave_type_code,
-                year
+                year,
+                for_update=True
             )
 
             if balance is None:
@@ -172,54 +218,109 @@ def create_leave_request(
                     detail=f"No leave balance found for {year}"
                 )
 
-            available_days = (
-                balance.entitlement_days - balance.used_days
-            )
-
+            # Count ALL other Pending requests in this year.
             pending_days = get_pending_leave_days(
                 db,
                 employee_id,
                 request_data.leave_type_code,
-                period_start,
-                period_end
+                date(year, 1, 1),
+                date(year, 12, 31)
             )
 
-            remaining_days = available_days - pending_days
+            available_days = (
+                balance.entitlement_days
+                - balance.used_days
+                - pending_days
+            )
 
-            if days_for_year > remaining_days:
+            if days_for_year > available_days:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
                         f"Insufficient leave balance for {year}. "
-                        f"Available after pending requests: {remaining_days} days. "
-                        f"Requested: {days_for_year} days."
+                        f"Available after pending requests: "
+                        f"{available_days} days."
                     )
                 )
 
-    # Create the request with server-controlled values
-    new_request = {
-        "employee_id": employee_id,
-        "leave_type_code": request_data.leave_type_code,
-        "start_date": request_data.start_date,
-        "end_date": request_data.end_date,
-        "days_requested": days_requested,
-        "reason": request_data.reason,
-        "status": "Pending"
-    }
+            balances_to_update.append(
+                (balance, days_for_year)
+            )
+
+    # ------------------------------------------
+    # 8. Determine initial request status
+    # ------------------------------------------
+
+    if leave_type.requires_approval:
+        initial_status = "Pending"
+    else:
+        initial_status = "Approved"
+
+    # ------------------------------------------
+    # 9. Create request and process auto-approval
+    # ------------------------------------------
+
+    new_request = LeaveRequests(
+        employee_id=employee_id,
+        leave_type_code=request_data.leave_type_code,
+        start_date=request_data.start_date,
+        end_date=request_data.end_date,
+        days_requested=days_requested,
+        reason=request_data.reason,
+        status=initial_status
+    )
 
     try:
-        return create_leave_request_record(
-            db,
-            new_request
-        )
+
+        db.add(new_request)
+
+        # Obtain the generated leave_request_id
+        db.flush()
+
+        # Paid leave with automatic approval:
+        # update balances and create transaction records.
+        if (
+            not leave_type.requires_approval
+            and leave_type.is_paid
+        ):
+
+            for balance, days_for_year in balances_to_update:
+
+                balance.used_days += days_for_year
+
+                transaction = LeaveTransactions(
+                    employee_id=employee_id,
+                    leave_balance_id=balance.leave_balance_id,
+                    leave_request_id=new_request.leave_request_id,
+                    transaction_type="LEAVE_USED",
+                    days_delta=-days_for_year,
+                    notes=(
+                        "Automatically approved because "
+                        "approval is not required for this leave type."
+                    ),
+                    actor_user_id=current_user.user_id
+                )
+
+                db.add(transaction)
+
+        # Commit request, balance changes and transactions together.
+        db.commit()
+
+        db.refresh(new_request)
+
+        return new_request
 
     except IntegrityError:
+        db.rollback()
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Leave request conflicts with existing records"
         )
 
-
+    except Exception:
+        db.rollback()
+        raise
 # --------------------------------------------------
 # 2. GET OWN LEAVE REQUESTS
 # GET /leave/requests/me
