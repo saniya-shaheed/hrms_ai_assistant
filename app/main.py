@@ -9,6 +9,7 @@ from app import models
 from app.routers import auth, employees, departments, users, leave_types, leave_entitlement_rules, leave_balances, leave_requests, public_holidays
 from app.routers.roles import roles_router, permissions_router, user_roles_router
 from app.routers.leave_approvals import pending_router, decision_router
+from app.routers.hr_documents import document_types_router, document_requests_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI() 
@@ -56,3 +57,8 @@ app.include_router(leave_requests.router)
 app.include_router(pending_router)
 app.include_router(decision_router)
 app.include_router(public_holidays.router)
+app.include_router(document_types_router)
+app.include_router(document_requests_router)
+
+
+
