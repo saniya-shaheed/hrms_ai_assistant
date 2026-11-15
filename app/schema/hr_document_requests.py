@@ -17,9 +17,10 @@ class HRDocumentRequestUpdate(BaseModel):
         "Processing",
         "Completed",
         "Rejected"
-    ] | None = None
+    ]
 
     remarks: str | None = None
+
     document_reference: str | None = Field(
         default=None,
         max_length=500
