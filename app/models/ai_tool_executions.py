@@ -10,8 +10,19 @@ class AIToolExecutions(Base):
     message_id = Column(BigInteger, ForeignKey("ai_messages.message_id"))
     user_id = Column(BigInteger, ForeignKey("users.user_id"))
     tool_name = Column(String(100), nullable=False)
-    input_arguments = Column(JSON, default=lambda:{})
-    execution_status = Column(String(100), default="started")
+    input_arguments = Column(
+        JSON,
+        nullable=False,
+        default=dict,
+        server_default="{}"
+    )
+
+    execution_status = Column(
+        String(100),
+        nullable=False,
+        default="started",
+        server_default="started"
+    )
     result_summary = Column(Text)
     error_code = Column(String(100))
     started_at = Column(DateTime, default=func.now())

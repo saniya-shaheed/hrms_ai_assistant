@@ -12,7 +12,11 @@ class AIConversations(Base):
     started_at = Column(DateTime, default=func.now())
     last_message_at = Column(DateTime)
     ended_at = Column(DateTime)
-    meta_data = Column(JSON, default=lambda:{})
+    meta_data = Column(
+        JSON,
+        default=dict,
+        server_default="{}"
+    )
 
     user = relationship("Users", back_populates="ai_conversations")
     messages = relationship("AIMessages", back_populates="conversation")

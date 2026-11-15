@@ -11,7 +11,11 @@ class AIMessages(Base):
     content = Column(Text, nullable=False)
     model_name = Column(String(100))
     token_count = Column(Integer)
-    meta_data = Column(JSON, default=lambda:{})
+    meta_data = Column(
+        JSON,
+        default=dict,
+        server_default="{}"
+    )
     created_at = Column(DateTime, default=func.now())
 
     conversation = relationship("AIConversations", back_populates="messages")
