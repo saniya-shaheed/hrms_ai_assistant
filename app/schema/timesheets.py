@@ -1,32 +1,52 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator
+)
+
+from app.schema.timesheet_entries import TimesheetEntryOut
 
 
-class TimesheetsBase(BaseModel):
-    employee_id : int
-    period_start : datetime
-    period_end : datetime
-    status : str = "draft"
-    submitted_at : datetime | None = None
-    approved_at : datetime | None = None
-    total_hours : int = 0
-    employee_comments : str | None = None
-    reviewer_comments : str | None = None
+class TimesheetCreate(BaseModel):
+    period_start: date
+    period_end: date
+    employee_comments: str | None = None
 
-class TimesheetsCreate(TimesheetsBase):
-    pass
+    @model_validator(mode="after")
+    def validate_weekly_period(self):
+        if self.period_end < self.period_start:
+            raise ValueError(
+                "Period end cannot be earlier than period start"
+            )
 
-class TimesheetsUpdate(TimesheetsBase):
-    employee_id : int | None = None
-    period_start : datetime | None = None
-    period_end : datetime | None = None
+        if self.period_end - self.period_start != timedelta(days=6):
+            raise ValueError(
+                "A timesheet must cover exactly seven consecutive calendar days"
+            )
 
-class TimesheetsOut(TimesheetsBase):
+        return self
+
+
+class TimesheetOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    timesheet_id : int
-    created_at : datetime
-    updated_at : datetime
 
+    timesheet_id: int
+    employee_id: int
+    period_start: date
+    period_end: date
+    status: str
+    submitted_at: datetime | None
+    approved_at: datetime | None
+    total_hours: int
+    employee_comments: str | None
+    reviewer_comments: str | None
+    created_at: datetime
+    updated_at: datetime
 
-
+    # Include work entries when retrieving a timesheet.
+    timesheet_entries: list[TimesheetEntryOut] = Field(
+        default_factory=list
+    )
