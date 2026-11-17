@@ -115,48 +115,67 @@ def seed_permissions(db):
             db.add(Permissions(**data))
 
 def seed_employee_and_user(db):
-    department = (
-        db.query(Departments)
-        .filter(Departments.department_code == "IT")
-        .first()
-    )
+    users_to_seed = [
+        {
+            "employee_code": "EMP001",
+            "employee_name": "Test Employee",
+            "email": "employee@test.com",
+            "department_code": "IT",
+            "job_title": "Data Analyst",
+            "password": "Test@12345",
+        },
+        {
+            "employee_code": "EMP010",
+            "employee_name": "Test Employee 10",
+            "email": "employee10@test.com",
+            "department_code": "FIN",
+            "job_title": "Finance Manager",
+            "password": "emp010@12345",
+        },
+    ]
 
-    if not department:
-        raise ValueError("IT department not found.")
-
-    employee = (
-        db.query(Employees)
-        .filter(Employees.employee_code == "EMP001")
-        .first()
-    )
-
-    if not employee:
-        employee = Employees(
-            employee_code="EMP001",
-            employee_name="Test Employee",
-            email="employee@test.com",
-            department_id=department.department_id,
-            job_title="Data Analyst",
-            is_active=True,
+    for data in users_to_seed:
+        department = (
+            db.query(Departments)
+            .filter(Departments.department_code == data["department_code"])
+            .first()
         )
 
-        db.add(employee)
-        db.flush()
+        if not department:
+            raise ValueError(f"{data['department_code']} department not found.")
 
-    user = (
-        db.query(Users)
-        .filter(Users.employee_id == employee.employee_id)
-        .first()
-    )
-
-    if not user:
-        user = Users(
-            employee_id=employee.employee_id,
-            password_hash=hash_password("Test@12345"),
-            is_active=True,
+        employee = (
+            db.query(Employees)
+            .filter(Employees.employee_code == data["employee_code"])
+            .first()
         )
 
-        db.add(user)
+        if not employee:
+            employee = Employees(
+                employee_code=data["employee_code"],
+                employee_name=data["employee_name"],
+                email=data["email"],
+                department_id=department.department_id,
+                job_title=data["job_title"],
+                is_active=True,
+            )
+            db.add(employee)
+            db.flush()  # Generates employee.employee_id before creating the user
+
+        user = (
+            db.query(Users)
+            .filter(Users.employee_id == employee.employee_id)
+            .first()
+        )
+
+        if not user:
+            user = Users(
+                employee_id=employee.employee_id,
+                password_hash=hash_password(data["password"]),
+                is_active=True,
+            )
+            db.add(user)
+
 
 def seed_database():
     db = SessionLocal()

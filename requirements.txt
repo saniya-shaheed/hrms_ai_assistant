@@ -13,5 +13,6 @@ alembic
 pgvector
 argon2-cffi 
 PyJWT
+google-genai
 
 
