@@ -9,13 +9,13 @@ from app.dependencies.auth import get_current_user
 from app.models.departments import Departments
 from app.schema.employees import EmployeesCreate, EmployeesOut, EmployeesUpdate
 from app.dependencies.authorization import require_permission
+from app.services.employee_service import get_my_employee_details
 
 
 router = APIRouter(
     prefix="/employees",
     tags=["Employees"]
 )
-
 
 @router.get("/me", response_model=EmployeesOut)
 def get_my_profile(

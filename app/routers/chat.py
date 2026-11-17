@@ -85,7 +85,9 @@ def chat(
 
     response_text = gemini.generate_response(
         message=request.message,
-        history=history
+        history=history,
+        db=db,
+        current_user=current_user
     )
 
     # Save assistant response
