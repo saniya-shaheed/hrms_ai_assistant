@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class AIChatRequest(BaseModel):
-    conversation_id: int = Field(gt=0)
-    message: str = Field(min_length=1)
+    conversation_id: int
+    message: str
 
 
 class AIChatResponse(BaseModel):
@@ -11,4 +11,4 @@ class AIChatResponse(BaseModel):
     user_message_id: int
     assistant_message_id: int
     response: str
-    model_name: str | None = None
+    model_name: str
