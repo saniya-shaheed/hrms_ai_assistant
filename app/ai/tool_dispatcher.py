@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.services.employee_service import get_my_employee_details
 from app.services.leave_service import get_my_leave_balance
+from app.services.leave_request_service import get_my_leave_requests
 
 
 def execute_tool(
@@ -26,6 +27,13 @@ def execute_tool(
             db=db,
             current_user=current_user,
             balance_year=balance_year
+        )
+
+    elif function_name == "get_my_leave_requests":
+
+        result = get_my_leave_requests(
+            db=db,
+            current_user=current_user
         )
 
     else:

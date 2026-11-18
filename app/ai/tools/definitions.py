@@ -47,3 +47,44 @@ leave_tools = [
         ]
     )
 ]
+
+leave_tools = [
+    types.Tool(
+        function_declarations=[
+            types.FunctionDeclaration(
+                name="get_leave_balance",
+                description=(
+                    "Retrieve the authenticated employee's own leave balances. "
+                    "The employee can optionally request balances for a specific year. "
+                    "This function does not retrieve another employee's leave balance."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "balance_year": types.Schema(
+                            type=types.Type.INTEGER,
+                            description=(
+                                "The leave balance year to retrieve. "
+                                "If omitted, balances for all available years are returned."
+                            )
+                        )
+                    }
+                )
+            ),
+
+            types.FunctionDeclaration(
+                name="get_my_leave_requests",
+                description=(
+                    "Retrieve the authenticated employee's own leave requests. "
+                    "This function returns the employee's submitted leave requests "
+                    "including leave type, dates, requested days, reason and status. "
+                    "This function does not retrieve another employee's leave requests."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={}
+                )
+            )
+        ]
+    )
+]
