@@ -6,8 +6,7 @@ from google.genai import types
 from sqlalchemy.orm import Session
 
 from app.ai.tools.definitions import employee_tools, leave_tools
-from app.services.employee_service import get_my_employee_details
-from app.services.leave_service import get_my_leave_balance
+from app.ai.tool_dispatcher import execute_tool
 
 load_dotenv()
 
@@ -68,44 +67,31 @@ class GeminiService:
                     "are required for employee tools."
                 )
 
-            # Add Gemini's function-call message to the conversation
-            contents.append(response.candidates[0].content)
+            # Add Gemini's function-call message
+            contents.append(
+                response.candidates[0].content
+            )
 
             function_response_parts = []
 
             for function_call in response.function_calls:
+
                 function_name = function_call.name
                 args = function_call.args or {}
 
-                if function_name == "get_my_employee_details":
-                    result = get_my_employee_details(
-                        db=db,
-                        current_user=current_user
-                    )
-
-                elif function_name == "get_leave_balance":
-                    balance_year = args.get("balance_year")
-                    result = get_my_leave_balance(
-                        db=db,
-                        current_user=current_user,
-                        balance_year=balance_year
-                    )
-
-                else:
-                    raise ValueError(
-                        f"Unknown function requested by Gemini: "
-                        f"{function_name}"
-                    )
-
-                # Ensure response is always a dictionary for Pydantic validation
-                formatted_result = (
-                    result if isinstance(result, dict) else {"result": result}
+                # Execute the requested backend tool
+                result = execute_tool(
+                    function_name=function_name,
+                    args=args,
+                    db=db,
+                    current_user=current_user
                 )
 
+                # Add function result
                 function_response_parts.append(
                     types.Part.from_function_response(
                         name=function_name,
-                        response=formatted_result
+                        response=result
                     )
                 )
 
@@ -117,7 +103,7 @@ class GeminiService:
                 )
             )
 
-            # Ask Gemini to generate the final natural-language response
+            # Ask Gemini to generate the final response
             final_response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=contents,
