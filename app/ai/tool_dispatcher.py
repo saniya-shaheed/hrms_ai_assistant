@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.services.employee_service import get_my_employee_details
+from app.services.leave_approval_service import decide_leave_request_from_ai
 from app.services.leave_service import get_my_leave_balance
 from app.services.leave_request_service import (
     get_my_leave_requests,
@@ -51,6 +52,15 @@ def execute_tool(
                 start_date=args.get("start_date"),
                 end_date=args.get("end_date"),
                 reason=args.get("reason")
+            )
+
+        elif function_name == "decide_leave_request":
+            result = decide_leave_request_from_ai(
+                db=db,
+                current_user=current_user,
+                request_id=args.get("request_id"),
+                decision=args.get("decision"),
+                remarks=args.get("remarks")
             )
 
         else:

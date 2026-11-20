@@ -101,6 +101,48 @@ leave_tools = [
                         "end_date"
                     ]
                 )
+            ),
+            types.FunctionDeclaration(
+                name="decide_leave_request",
+                description=(
+                    "Approve or reject a pending leave request. "
+                    "This function can only be used by an authenticated user who has "
+                    "permission to decide leave requests. "
+                    "The backend independently checks the user's authorization, "
+                    "whether the request is pending, whether the user is allowed to "
+                    "decide the request, and whether the approval can be processed. "
+                    "The decision must be either Approved or Rejected. "
+                    "Remarks are optional."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "request_id": types.Schema(
+                            type=types.Type.INTEGER,
+                            description=(
+                                "The ID of the leave request that should be approved "
+                                "or rejected."
+                            )
+                        ),
+                        "decision": types.Schema(
+                            type=types.Type.STRING,
+                            description=(
+                                "The decision for the leave request. "
+                                "Must be either Approved or Rejected."
+                            )
+                        ),
+                        "remarks": types.Schema(
+                            type=types.Type.STRING,
+                            description=(
+                                "Optional remarks or comments explaining the decision."
+                            )
+                        )
+                    },
+                    required=[
+                        "request_id",
+                        "decision"
+                    ]
+                )
             )
         ]
     )
