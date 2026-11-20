@@ -1,8 +1,12 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.services.employee_service import get_my_employee_details
 from app.services.leave_service import get_my_leave_balance
-from app.services.leave_request_service import get_my_leave_requests
+from app.services.leave_request_service import (
+    get_my_leave_requests,
+    submit_leave_request_from_ai
+)
 
 
 def execute_tool(
@@ -12,37 +16,57 @@ def execute_tool(
     current_user
 ):
 
-    if function_name == "get_my_employee_details":
+    try:
 
-        result = get_my_employee_details(
-            db=db,
-            current_user=current_user
-        )
+        if function_name == "get_my_employee_details":
 
-    elif function_name == "get_leave_balance":
+            result = get_my_employee_details(
+                db=db,
+                current_user=current_user
+            )
 
-        balance_year = args.get("balance_year")
+        elif function_name == "get_leave_balance":
 
-        result = get_my_leave_balance(
-            db=db,
-            current_user=current_user,
-            balance_year=balance_year
-        )
+            balance_year = args.get("balance_year")
 
-    elif function_name == "get_my_leave_requests":
+            result = get_my_leave_balance(
+                db=db,
+                current_user=current_user,
+                balance_year=balance_year
+            )
 
-        result = get_my_leave_requests(
-            db=db,
-            current_user=current_user
-        )
+        elif function_name == "get_my_leave_requests":
 
-    else:
-        raise ValueError(
-            f"Unknown function requested by Gemini: {function_name}"
-        )
+            result = get_my_leave_requests(
+                db=db,
+                current_user=current_user
+            )
 
-    # Gemini function responses must be dictionaries
-    if isinstance(result, dict):
-        return result
+        elif function_name == "submit_leave_request":
 
-    return {"result": result}
+            result = submit_leave_request_from_ai(
+                db=db,
+                current_user=current_user,
+                leave_type_code=args.get("leave_type_code"),
+                start_date=args.get("start_date"),
+                end_date=args.get("end_date"),
+                reason=args.get("reason")
+            )
+
+        else:
+            raise ValueError(
+                f"Unknown function requested by Gemini: {function_name}"
+            )
+
+        if isinstance(result, dict):
+            return result
+
+        return {"result": result}
+
+    except HTTPException as e:
+
+        return {
+            "success": False,
+            "status_code": e.status_code,
+            "error": e.detail
+        }

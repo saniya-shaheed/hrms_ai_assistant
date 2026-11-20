@@ -39,6 +39,7 @@ from app.schema.leave_requests import (
     LeaveRequestsCreate,
     LeaveRequestsOut
 )
+from app.services.leave_request_service import submit_leave_request
 
 
 router = APIRouter(
@@ -321,6 +322,29 @@ def create_leave_request(
     except Exception:
         db.rollback()
         raise
+
+@router.post(
+    "",
+    response_model=LeaveRequestsOut,
+    status_code=status.HTTP_201_CREATED
+)
+def create_leave_request(
+    request_data: LeaveRequestsCreate,
+    current_user=Depends(
+        require_permission("leave.create")
+    ),
+    db: Session = Depends(get_db)
+):
+
+    return submit_leave_request(
+        db=db,
+        current_user=current_user,
+        leave_type_code=request_data.leave_type_code,
+        start_date=request_data.start_date,
+        end_date=request_data.end_date,
+        reason=request_data.reason
+    )
+
 # --------------------------------------------------
 # 2. GET OWN LEAVE REQUESTS
 # GET /leave/requests/me
